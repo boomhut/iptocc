@@ -1,0 +1,6 @@
+github.com/ip2location/ip2location-go/v9 v9.7.0 h1:ipwl67HOWcrw+6GOChkEXcreRQR37NabqBd2ayYa4Q0=
+github.com/ip2location/ip2location-go/v9 v9.7.0/go.mod h1:MPLnsKxwQlvd2lBNcQCsLoyzJLDBFizuO67wXXdzoyI=
+github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
+github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+lukechampine.com/uint128 v1.2.0 h1:mBi/5l91vocEN8otkC5bDLhi2KdCticRiwbdB0O+rjI=
+lukechampine.com/uint128 v1.2.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl2j1gk=
