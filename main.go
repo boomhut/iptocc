@@ -1,4 +1,4 @@
-package iptocc
+package main
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ func FindDataFiles() (string, string) {
 	return ip2loc.IPv4, ip2loc.IPv6
 }
 
-// Function to set IP2Location data files
+// // Function to set IP2Location data files
 func init() {
 	SetDataFolder("./data/")
 }
@@ -112,7 +112,7 @@ func (info ipInfo) String() string {
 }
 
 func Ip4ToLocation(ip string) ipInfo {
-	db, err := ip2location.OpenDB("./IP2LOCATION-LITE-DB11.BIN")
+	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
 
 	if err != nil {
 		fmt.Print(err)
@@ -148,7 +148,7 @@ func Ip4ToLocation(ip string) ipInfo {
 }
 
 func Ip6ToLocation(ip string) ipInfo {
-	db, err := ip2location.OpenDB("./IP2LOCATION-LITE-DB11.IPV6.BIN")
+	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
 
 	if err != nil {
 		fmt.Print(err)
