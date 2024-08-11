@@ -2,11 +2,63 @@ package iptocc
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"strings"
 
 	"github.com/ip2location/ip2location-go/v9"
 )
+
+type Ip2LocationDataFiles struct {
+	DataFolder string // data folder path to store IP2Location data files. Example: /path/to/data/
+	IPv4       string // IPv4 data file name. Example: IP2LOCATION-LITE-DB11.BIN
+	IPv6       string // IPv6 data file name. Example: IP2LOCATION-LITE-DB11.IPV6.BIN
+}
+
+var ip2loc *Ip2LocationDataFiles
+
+// Function to set IP2Location data folder
+func SetDataFolder(dataFolder string) {
+	ip2loc = new(Ip2LocationDataFiles)
+	ip2loc.DataFolder = dataFolder
+
+	i4, i6 := FindDataFiles()
+	ip2loc.IPv4 = i4
+	ip2loc.IPv6 = i6
+}
+
+// function to automatically find the IP2Location data files in the data folder
+func FindDataFiles() (string, string) {
+	// first find the IPv6 data file (ending with .IPV6.BIN)
+	// loop through all files in the data folder
+	files, err := ioutil.ReadDir(ip2loc.DataFolder)
+	if err != nil {
+		fmt.Println(err)
+		return "", ""
+	}
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".IPV6.BIN") {
+			ip2loc.IPv6 = file.Name()
+			break
+		}
+	}
+
+	// find the IPv4 data file (ending with .BIN, but not .IPV6.BIN)
+	// loop through all files in the data folder
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".BIN") && !strings.HasSuffix(file.Name(), ".IPV6.BIN") {
+			ip2loc.IPv4 = file.Name()
+			break
+		}
+	}
+
+	return ip2loc.IPv4, ip2loc.IPv6
+}
+
+// Function to set IP2Location data files
+func init() {
+	SetDataFolder("./data/")
+}
 
 // Function to lookup country by IP address
 func LookupCountry(ip net.IP) (string, error) {
