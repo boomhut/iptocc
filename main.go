@@ -115,19 +115,19 @@ func Ip4ToLocation(ip string) ipInfo {
 	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
 
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 	results, err := db.Get_all(ip)
 
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 	// lookup hostname
 	hostname, err := net.LookupAddr(ip)
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 
@@ -151,20 +151,20 @@ func Ip6ToLocation(ip string) ipInfo {
 	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
 
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 	results, err := db.Get_all(ip)
 
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 
 	// lookup hostname
 	hostname, err := net.LookupAddr(ip)
 	if err != nil {
-		fmt.Print(err)
+		// fmt.Print(err)
 		return ipInfo{}
 	}
 
