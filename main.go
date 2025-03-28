@@ -469,3 +469,10 @@ func Ip2Location(ip string) ipInfo {
 		return ipInfo{}
 	}
 }
+
+// GetLastUpdatedDate function to get the last updated date of the sub folder
+func GetLastUpdatedDate() time.Time {
+	ip2loc.mu.RLock()
+	defer ip2loc.mu.RUnlock()
+	return ip2loc.LastUpdate
+}
