@@ -12,6 +12,7 @@ import (
 
 type Ip2LocationDataFiles struct {
 	DataFolder string // data folder path to store IP2Location data files. Example: /path/to/data/
+	SubFolder  string // sub folder path to store IP2Location data files. Example: /path/to/data/september2023/
 	IPv4       string // IPv4 data file name. Example: IP2LOCATION-LITE-DB11.BIN
 	IPv6       string // IPv6 data file name. Example: IP2LOCATION-LITE-DB11.IPV6.BIN
 	mu         sync.RWMutex
@@ -30,6 +31,7 @@ func init() {
 	ip6DB = nil // set default IPv6 database to nil
 
 	SetDataFolder("./data/ip2location") // set the data folder to the default value
+	// TODO: get the data folder from the environment variable or command line argument
 
 }
 
@@ -182,14 +184,16 @@ func (info ipInfo) String() string {
 
 func Ip4ToLocation(ip string) ipInfo {
 	// lock ip2location database for read
-	ip2loc.mu.RLock()
-	defer ip2loc.mu.RUnlock()
-	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
+	// ip2loc.mu.RLock()
+	// defer ip2loc.mu.RUnlock()
+	// db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
 
-	if err != nil {
-		// fmt.Print(err)
+	db := GetIp4DB()
+	if db == nil {
+		fmt.Println("Error opening IPv4 database")
 		return ipInfo{}
 	}
+
 	results, err := db.Get_all(ip)
 
 	if err != nil {
@@ -221,12 +225,17 @@ func Ip4ToLocation(ip string) ipInfo {
 
 func Ip6ToLocation(ip string) ipInfo {
 	// lock ip2location database for read
-	ip2loc.mu.RLock()
-	defer ip2loc.mu.RUnlock()
-	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
+	// ip2loc.mu.RLock()
+	// defer ip2loc.mu.RUnlock()
+	// db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
 
-	if err != nil {
-		// fmt.Print(err)
+	// if err != nil {
+	// 	// fmt.Print(err)
+	// 	return ipInfo{}
+	// }
+	db := GetIp6DB()
+	if db == nil {
+		fmt.Println("Error opening IPv6 database")
 		return ipInfo{}
 	}
 	results, err := db.Get_all(ip)
