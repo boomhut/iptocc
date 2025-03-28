@@ -2,9 +2,10 @@ package iptocc
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 	"strings"
+	"sync"
 
 	"github.com/ip2location/ip2location-go/v9"
 )
@@ -13,25 +14,51 @@ type Ip2LocationDataFiles struct {
 	DataFolder string // data folder path to store IP2Location data files. Example: /path/to/data/
 	IPv4       string // IPv4 data file name. Example: IP2LOCATION-LITE-DB11.BIN
 	IPv6       string // IPv6 data file name. Example: IP2LOCATION-LITE-DB11.IPV6.BIN
+	mu         sync.RWMutex
 }
 
 var ip2loc *Ip2LocationDataFiles
 
 // Function to set IP2Location data folder
-func SetDataFolder(dataFolder string) {
-	ip2loc = new(Ip2LocationDataFiles)
+func SetDataFolder(dataFolder string) error {
+	// check if data folder exists
+	if _, err := os.Stat(dataFolder); os.IsNotExist(err) {
+		return fmt.Errorf("data folder does not exist: %s", dataFolder)
+	}
+
+	// if ip2loc is nil, create a new instance
+	if ip2loc == nil {
+		ip2loc = new(Ip2LocationDataFiles)
+	}
+	// check if data folder is empty
+	if dataFolder == "" {
+		return fmt.Errorf("data folder is empty")
+	}
+	// check if data folder is a directory
+	if fi, err := os.Stat(dataFolder); err != nil || !fi.IsDir() {
+		return fmt.Errorf("data folder is not a directory: %s", dataFolder)
+	}
+	ip2loc.mu.Lock()
+	defer ip2loc.mu.Unlock()
+
 	ip2loc.DataFolder = dataFolder
 
 	i4, i6 := FindDataFiles()
 	ip2loc.IPv4 = i4
 	ip2loc.IPv6 = i6
+
+	if ip2loc.IPv4 == "" || ip2loc.IPv6 == "" {
+		return fmt.Errorf("data files not found in data folder: %s", dataFolder)
+	}
+
+	return nil
 }
 
 // function to automatically find the IP2Location data files in the data folder
 func FindDataFiles() (string, string) {
 	// first find the IPv6 data file (ending with .IPV6.BIN)
 	// loop through all files in the data folder
-	files, err := ioutil.ReadDir(ip2loc.DataFolder)
+	files, err := os.ReadDir(ip2loc.DataFolder)
 	if err != nil {
 		fmt.Println(err)
 		return "", ""
@@ -53,11 +80,6 @@ func FindDataFiles() (string, string) {
 	}
 
 	return ip2loc.IPv4, ip2loc.IPv6
-}
-
-// // Function to set IP2Location data files
-func init() {
-	SetDataFolder("./data/")
 }
 
 // Function to lookup country by IP address
@@ -112,6 +134,9 @@ func (info ipInfo) String() string {
 }
 
 func Ip4ToLocation(ip string) ipInfo {
+	// lock ip2location database for read
+	ip2loc.mu.RLock()
+	defer ip2loc.mu.RUnlock()
 	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
 
 	if err != nil {
@@ -148,6 +173,9 @@ func Ip4ToLocation(ip string) ipInfo {
 }
 
 func Ip6ToLocation(ip string) ipInfo {
+	// lock ip2location database for read
+	ip2loc.mu.RLock()
+	defer ip2loc.mu.RUnlock()
 	db, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
 
 	if err != nil {
