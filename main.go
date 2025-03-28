@@ -18,6 +18,46 @@ type Ip2LocationDataFiles struct {
 }
 
 var ip2loc *Ip2LocationDataFiles
+var ip4DB *ip2location.DB
+var ip6DB *ip2location.DB
+
+// init function to create a new instance of Ip2LocationDataFiles, set the data folder and find the data files and connect to the database
+func init() {
+	ip2loc = new(Ip2LocationDataFiles)
+
+	// db
+	ip4DB = nil // set default IPv4 database to nil
+	ip6DB = nil // set default IPv6 database to nil
+
+	SetDataFolder("./data/ip2location") // set the data folder to the default value
+
+}
+
+// GetIp4DB function to get the IPv4 database
+func GetIp4DB() *ip2location.DB {
+	if ip4DB == nil {
+		ipDB4, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv4)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		ip4DB = ipDB4
+	}
+	return ip4DB
+}
+
+// GetIp6DB function to get the IPv6 database
+func GetIp6DB() *ip2location.DB {
+	if ip6DB == nil {
+		ipDB6, err := ip2location.OpenDB(ip2loc.DataFolder + ip2loc.IPv6)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		ip6DB = ipDB6
+	}
+	return ip6DB
+}
 
 // Function to set IP2Location data folder
 func SetDataFolder(dataFolder string) error {
@@ -38,6 +78,12 @@ func SetDataFolder(dataFolder string) error {
 	if fi, err := os.Stat(dataFolder); err != nil || !fi.IsDir() {
 		return fmt.Errorf("data folder is not a directory: %s", dataFolder)
 	}
+
+	// check if data folder is writable
+	if err := os.MkdirAll(dataFolder, 0755); err != nil {
+		return fmt.Errorf("data folder is not writable: %s", dataFolder)
+	}
+
 	ip2loc.mu.Lock()
 	defer ip2loc.mu.Unlock()
 
@@ -56,6 +102,7 @@ func SetDataFolder(dataFolder string) error {
 
 // function to automatically find the IP2Location data files in the data folder
 func FindDataFiles() (string, string) {
+	var ipv4, ipv6 string
 	// first find the IPv6 data file (ending with .IPV6.BIN)
 	// loop through all files in the data folder
 	files, err := os.ReadDir(ip2loc.DataFolder)
@@ -65,7 +112,7 @@ func FindDataFiles() (string, string) {
 	}
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".IPV6.BIN") {
-			ip2loc.IPv6 = file.Name()
+			ipv6 = file.Name()
 			break
 		}
 	}
@@ -74,12 +121,12 @@ func FindDataFiles() (string, string) {
 	// loop through all files in the data folder
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".BIN") && !strings.HasSuffix(file.Name(), ".IPV6.BIN") {
-			ip2loc.IPv4 = file.Name()
+			ipv4 = file.Name()
 			break
 		}
 	}
 
-	return ip2loc.IPv4, ip2loc.IPv6
+	return ipv4, ipv6
 }
 
 // Function to lookup country by IP address
